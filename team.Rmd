@@ -1,0 +1,73 @@
+---
+title: "lab5"
+author: "Han Sun, Xinyi Zhu"
+date: "2020.4.13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+accident <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
+person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+```
+
+1. are there some days of the week where more accidents happen than on others (use variable DAY_WEEK)?
+
+```{r}
+table(accident$DAY_WEEK)
+max(count(accident,DAY_WEEK))
+```
+
+Sunday has more accidents than others. Sunday has 5873 accidents.
+
+2. what time of the day do accidents happen (use variable HOUR)?
+
+```{r}
+table(accident$HOUR)
+accident %>% 
+  filter(HOUR != 99) %>%
+  ggplot(aes(x = HOUR)) + geom_bar() + geom_text(stat = "count", aes(label = stat(count)),vjust=1, color="white", size=2)
+```
+
+The accidents happen from 14 to 23 o'clock in a day. The most accidents happen at 18 o'clock.
+
+3. what is the number of accidents with at least one drunk driver (use variable DRUNK_DR)?
+
+```{r}
+accident %>% 
+  filter(DRUNK_DR >= 1) %>%
+  count()
+```
+
+The number of accidents with at least one drunk driver is 8769.
+
+4. In the person table, dentify drivers (PER_TYP == 1, see FARS manual) and subset on them.
+
+```{r}
+person <- person %>% 
+  filter(PER_TYP == 1)
+```
+
+5. Join accident and person table (work out which variable(s) to use)
+
+```{r}
+connection <- accident %>%
+  full_join(person, by = c("STATE", "ST_CASE","COUNTY", "DAY", "MONTH", "HOUR", "MINUTE"))
+```
+
+
+6. Tally the number of accidents by day of the week (DAY_WEEK), hour of the day (HOUR) and gender (SEX). Visualize the results.
+
+7. Now plot a choropleth map of accidents on a county level
+
+Read the description for the STATE and COUNTY columns in the FARS manual. The state & county codes are Geographic Locator Codes (GLCs) from the General Services Administration¡¯s (GSA) publication
+Use readxl::read_xlsx to read in the GLCs
+
+8. Visualize the number of accidents in each county using a choropleth map. To do this, you need to join the accident data, GLCs, and appropriate map data.
+
+9. Can you find seasonal trends in accident occurrences in different states? Is summer or winter more dangerous? Why?
