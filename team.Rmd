@@ -9,6 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
+library(lubridate)
+library(maps)
+library(plyr)
 ```
 
 ```{r}
@@ -58,16 +61,64 @@ person <- person %>%
 ```{r}
 connection <- accident %>%
   full_join(person, by = c("STATE", "ST_CASE","COUNTY", "DAY", "MONTH", "HOUR", "MINUTE"))
+
 ```
 
 
 6. Tally the number of accidents by day of the week (DAY_WEEK), hour of the day (HOUR) and gender (SEX). Visualize the results.
+```{r}
+library(lubridate)
+connection$SEX <- as.factor(connection$SEX)
+
+connection %>% 
+  filter(SEX ==1 | SEX ==2) %>%
+  filter( HOUR <= 24) %>%
+  ggplot(connection, mapping=aes(x=HOUR, fill=wday(DAY_WEEK, label =TRUE) )) + 
+  geom_bar() + facet_wrap(~SEX) +labs(fill = "Day of Week")  +xlab('hours') 
+  +ylab('Number of accidents') +ggtitle('Accidents by week,hour,and sex')
+
+```
+
 
 7. Now plot a choropleth map of accidents on a county level
 
-Read the description for the STATE and COUNTY columns in the FARS manual. The state & county codes are Geographic Locator Codes (GLCs) from the General Services Administration¡¯s (GSA) publication
+Read the description for the STATE and COUNTY columns in the FARS manual. The state & county codes are Geographic Locator Codes (GLCs) from the General Services Administration??s (GSA) publication
 Use readxl::read_xlsx to read in the GLCs
+```{r}
+glcs <- readxl::read_xlsx("/Users/jessie/Desktop/ds202/ds202_lab5/GLCs.xlsx")
+counties <- map_data('county')
+counties1 <- counties
+acc1 <- accident
+glcs$STATE <- glcs$`State Code`
+glcs$COUNTY <- glcs$`County Code`
+glcs <- glcs%>% select("STATE", "State Name", "COUNTY", "County Name")
+accident <- accident %>% select("STATE", "COUNTY", "ST_CASE")
+
+geo1 <- accident %>% join(glcs)
+```
+```{r}
+geo1 <- geo1 %>% distinct()
+geo1$region <- geo1$`State Name`
+geo1$subregion <-geo1$`County Name`
+geo1 <- geo1 %>% select(-c("STATE","COUNTY","State Name","County Name"))
+geo1$region <- tolower(geo1$region)
+geo1$subregion <- tolower(geo1$subregion)
+glcs_acc <- geo1 %>% group_by(region, subregion) %>% dplyr::summarise(numAcc =n())
+final <- counties1 %>% join(glcs_acc)
+```
 
 8. Visualize the number of accidents in each county using a choropleth map. To do this, you need to join the accident data, GLCs, and appropriate map data.
+```{r}
+ggplot(final, aes(x=long, y= lat, finll = numAcc)) + geom_polygon(aes(group = group)) +xlab("Longitude") +ylab("Latitude") + labs(fill="Number of Accidents")
+```
+
 
 9. Can you find seasonal trends in accident occurrences in different states? Is summer or winter more dangerous? Why?
+```{r}
+acc1 <- acc1 %>% filter(WEATHER <98)
+Weather <- acc1 %>% group_by(STATE, WEATHER) %>% dplyr::summarise(n =n())
+
+ggplot(Weather, aes(x=STATE, y =n, fill = WEATHER)) + geom_bar(stat = "identity") +
+  xlim(c(0,60)) +ylim(c(0,3500)) +ylab('Number of Accidents')
+```
+From this bar char, I noticed the darker months (January and Frbruray most likely) account for a larger chunk of yearly accidents. As during the winter weather, there are snows on the road. That makes sense for me that number of accidents larger in these two monthes. Moreover, the lightly blue colored months(December and November) would also have the same reason for winter weather conditions.
