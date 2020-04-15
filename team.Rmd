@@ -23,7 +23,7 @@ person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/mas
 
 ```{r}
 table(accident$DAY_WEEK)
-max(count(accident,DAY_WEEK))
+
 ```
 
 Sunday has more accidents than others. Sunday has 5873 accidents.
@@ -52,8 +52,7 @@ The number of accidents with at least one drunk driver is 8769.
 4. In the person table, dentify drivers (PER_TYP == 1, see FARS manual) and subset on them.
 
 ```{r}
-person <- person %>% 
-  filter(PER_TYP == 1)
+drivers<-subset(person,PER_TYP == 1)
 ```
 
 5. Join accident and person table (work out which variable(s) to use)
@@ -74,8 +73,7 @@ connection %>%
   filter(SEX ==1 | SEX ==2) %>%
   filter( HOUR <= 24) %>%
   ggplot(connection, mapping=aes(x=HOUR, fill=wday(DAY_WEEK, label =TRUE) )) + 
-  geom_bar() + facet_wrap(~SEX) +labs(fill = "Day of Week")  +xlab('hours') 
-  +ylab('Number of accidents') +ggtitle('Accidents by week,hour,and sex')
+  geom_bar() + facet_wrap(~SEX) +labs(fill = "Day of Week")  +xlab("hours")+ggtitle("Accidents by week,hour,and sex")
 
 ```
 
@@ -109,7 +107,7 @@ final <- counties1 %>% join(glcs_acc)
 
 8. Visualize the number of accidents in each county using a choropleth map. To do this, you need to join the accident data, GLCs, and appropriate map data.
 ```{r}
-ggplot(final, aes(x=long, y= lat, finll = numAcc)) + geom_polygon(aes(group = group)) +xlab("Longitude") +ylab("Latitude") + labs(fill="Number of Accidents")
+ggplot(final, aes(x=long, y= lat, fill = numAcc)) + geom_polygon(aes(group = group)) +xlab("Longitude") +ylab("Latitude") + labs(fill="Number of Accidents")
 ```
 
 
