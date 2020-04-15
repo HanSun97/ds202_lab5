@@ -23,7 +23,7 @@ person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/mas
 
 ```{r}
 table(accident$DAY_WEEK)
-
+max(count(accident$DAY_WEEK))
 ```
 
 Sunday has more accidents than others. Sunday has 5873 accidents.
@@ -44,7 +44,7 @@ The accidents happen from 14 to 23 o'clock in a day. The most accidents happen a
 ```{r}
 accident %>% 
   filter(DRUNK_DR >= 1) %>%
-  count()
+  nrow()
 ```
 
 The number of accidents with at least one drunk driver is 8769.
@@ -52,7 +52,7 @@ The number of accidents with at least one drunk driver is 8769.
 4. In the person table, dentify drivers (PER_TYP == 1, see FARS manual) and subset on them.
 
 ```{r}
-drivers<-subset(person,PER_TYP == 1)
+drivers <- subset(person,PER_TYP == 1)
 ```
 
 5. Join accident and person table (work out which variable(s) to use)
@@ -60,7 +60,6 @@ drivers<-subset(person,PER_TYP == 1)
 ```{r}
 connection <- accident %>%
   full_join(person, by = c("STATE", "ST_CASE","COUNTY", "DAY", "MONTH", "HOUR", "MINUTE"))
-
 ```
 
 
@@ -83,7 +82,7 @@ connection %>%
 Read the description for the STATE and COUNTY columns in the FARS manual. The state & county codes are Geographic Locator Codes (GLCs) from the General Services Administration??s (GSA) publication
 Use readxl::read_xlsx to read in the GLCs
 ```{r}
-glcs <- readxl::read_xlsx("/Users/jessie/Desktop/ds202/ds202_lab5/GLCs.xlsx")
+glcs <- readxl::read_xlsx("GLCs.xlsx")
 counties <- map_data('county')
 counties1 <- counties
 acc1 <- accident
